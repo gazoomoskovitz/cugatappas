@@ -5,7 +5,7 @@
 }
 
 .stApp {
-    background: radial-gradient(circle, #4d2600 0%, #1a0d00 70%, #000000 100%) !important;
+    background: radial-gradient(circle, #FD8201 0%, #1a0d00 70%, #000000 100%) !important;
     background-attachment: fixed !important;
 }
 
@@ -19,10 +19,10 @@ h1 {
 
 .tarjeta-producto {
     background: rgba(20, 20, 20, 0.8) !important;
-    border: 1px solid #FD8204 !important;
+    border: 1px solid #FD8201 !important;
     border-radius: 12px;
     padding: 12px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 15px !important;
 }
 
 .fila-datos {
@@ -52,14 +52,48 @@ h1 {
     font-weight: 900 !important;
 }
 
-.barcode-fijo {
+/* --- AJUSTE CLAVE PARA QUE NO SE CORTEN LOS NÚMEROS --- */
+.barcode-container {
     background-color: white !important;
-    padding: 6px !important;
+    /* Aumentamos el padding inferior de 12px a 25px para dar "aire" a los números */
+    padding: 12px 12px 25px 12px !important;
     border-radius: 4px;
-    width: 160px !important; 
+    width: 190px !important; 
+    margin: 5px auto !important;
+    display: flex;
+    justify-content: center;
+}
+
+.barcode-fijo {
+    width: 100% !important;
     height: auto !important;
-    margin: 0 auto !important;
-    display: block !important;
+}
+
+/* --- ESTILOS PARA EL MODAL DE ZOOM (CENTRADO) --- */
+div[data-testid="stDialog"] div[data-testid="stVerticalBlock"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+/* Imagen ampliada dentro del modal */
+.img-zoom-barcode {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Botón de ampliar */
+div[data-testid="stButton"] > button {
+    background-color: #FD8201 !important;
+    color: white !important;
+    border: none !important;
+    width: 100%;
+    font-weight: bold;
 }
 
 #MainMenu, header, footer {visibility: hidden;}
