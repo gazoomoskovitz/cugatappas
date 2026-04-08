@@ -142,9 +142,9 @@ st.markdown(
     """
     <div style='text-align: center; color: rgba(255,255,255,0.6); padding-bottom: 20px;'>
         <h3 style='font-family: "BrushScript", cursive; font-size: 1.6rem; margin-bottom: 0px;'>
-            Desarrollado para Cugat
+            Desarrollado por Christian González & Constanza Bustamante
         </h3>
-        <p style='font-size: 0.85rem;'>Sistema de Consulta 2026</p>
+        <p style='font-size: 0.85rem;'>2026 - Informática Osorno ™</p>
     </div>
     """, 
     unsafe_allow_html=True
