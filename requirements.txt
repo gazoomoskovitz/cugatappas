@@ -3,5 +3,5 @@ pandas
 openpyxl
 python-barcode
 python-dotenv
-extra-streamlit-components
+extra_streamlit_components
 pillow
