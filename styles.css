@@ -1,44 +1,70 @@
-/* style.css */
+/* Fuente Personalizada */
+@font-face {
+    font-family: 'BrushScript';
+    src: url('data:font/ttf;base64,BASE64_DATA') format('truetype');
+}
 
-/* Fondo combinado: Naranja difuminado hacia Negro */
+/* Fondo de la App */
 .stApp {
-    background: radial-gradient(circle, #FD8204 0%, #301901 60%, #000000 100%) !important;
+    background: radial-gradient(circle, #FD8204 0%, #1a0d00 70%, #000000 100%) !important;
     background-attachment: fixed !important;
 }
 
-/* Títulos con tu tipografía BrushScript */
-h1, h2, h3 {
-    font-family: 'BrushScript', cursive !important;
-    color: #FFFFFF !important; /* Cambiado a blanco para que resalte sobre el fondo oscuro */
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra para dar profundidad */
-    font-weight: normal !important;
-}
+/* Ocultar elementos de Streamlit */
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+footer {visibility: hidden;}
+.stDeployButton {display:none;}
+[data-testid="stToolbar"] {visibility: hidden !important;}
 
-/* Textos normales */
-p, span, label, .stMarkdown {
+/* Títulos */
+h1 {
     color: #FFFFFF !important;
+    font-family: 'BrushScript', cursive !important;
+    text-align: center;
+    font-size: 3.2rem !important;
+    margin-bottom: 0px !important;
 }
 
-/* Cajones de texto */
-.stTextInput input {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    color: #000000 !important;
-    border-radius: 5px !important;
+/* Tarjeta de producto horizontal */
+.tarjeta-producto {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(253, 130, 4, 0.4) !important;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
 }
 
-/* Botón Cugat */
-.stButton>button {
-    background-color: #000000 !important;
-    color: #FD8204 !important; /* Letras naranjas sobre botón negro */
-    border: 1px solid #FD8204 !important;
-    border-radius: 8px;
-    font-weight: bold;
+/* Tamaños de elementos */
+.img-producto img {
+    max-width: 60px !important;
+    border-radius: 5px;
 }
 
-/* Tarjetas de productos más elegantes */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    background-color: rgba(0, 0, 0, 0.4) !important; /* Fondo oscuro traslúcido */
-    backdrop-filter: blur(10px); /* Efecto vidrio esmerilado */
-    border: 1px solid rgba(253, 130, 4, 0.3) !important;
-    border-radius: 15px;
+.nombre-producto {
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+    font-size: 1rem;
+    line-height: 1.1;
+    display: block;
+}
+
+/* PRECIO DESTACADO: Blanco, Negrita y Subrayado */
+.precio-producto {
+    color: #FFFFFF !important;
+    font-size: 1.6rem !important;
+    font-weight: 900 !important;
+    text-decoration: underline !important;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Código de barras a la derecha */
+.barcode-contenedor {
+    background-color: white;
+    padding: 4px;
+    border-radius: 4px;
+    max-width: 140px; /* Tamaño controlado para que no sature */
+    margin-left: auto;
 }
