@@ -3,149 +3,118 @@ import pandas as pd
 import os
 import barcode
 import base64
-import time
 from barcode.writer import ImageWriter
 from io import BytesIO
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
 
-# --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Cugat App", page_icon="👑", layout="centered")
+# --- 1. CONFIGURACIÓN ---
+st.set_page_config(page_title="Cugat App Autoservicio", page_icon="👑", layout="centered")
 
-# --- ESTILOS PERSONALIZADOS (Diseño original de GitHub) ---
 def cargar_estilos():
-    if os.path.exists("BRUSHSCI.ttf"):
-        with open("BRUSHSCI.ttf", "rb") as f:
-            font_data = base64.b64encode(f.read()).decode()
-        st.markdown(f"""
-            <style>
-            @font-face {{
-                font-family: 'BrushScript';
-                src: url(data:font/ttf;base64,{font_data}) format('truetype');
-            }}
-            .stApp {{
-                background: radial-gradient(circle, #FD8204 0%, #1a0d00 70%, #000000 100%) !important;
-                background-attachment: fixed !important;
-            }}
-            .logo-blanco img {{
-                filter: brightness(0) invert(1) !important;
-            }}
-            h1, h2, h3 {{
-                color: #FFFFFF !important;
-                font-family: 'BrushScript', cursive !important;
-                text-align: center;
-            }}
-            [data-testid="stVerticalBlockBorderWrapper"] {{
-                background-color: rgba(0, 0, 0, 0.4) !important;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(253, 130, 4, 0.3) !important;
-                border-radius: 15px;
-            }}
-            </style>
-            """, unsafe_allow_html=True)
+    if os.path.exists("styles.css"):
+        with open("styles.css", "r") as f:
+            css = f.read()
+        if os.path.exists("BRUSHSCI.ttf"):
+            with open("BRUSHSCI.ttf", "rb") as f:
+                font_64 = base64.b64encode(f.read()).decode()
+            css = css.replace("BASE64_DATA", font_64)
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 cargar_estilos()
 
-# --- CARGA DE DATOS (Google Sheets con Precio Opcional) ---
-@st.cache_data(ttl=5, show_spinner=False)
-def cargar_datos():
-    SHEET_ID = "1Wf2WxlVh0UdQJG3vhE-EUDr15E3cPE3n8iqHd0b7If4" 
-    SHEET_NAME = "productos" 
-    url_gsheets = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
-    
-    df = None
+# --- 2. FUNCIONES DE CARGA ---
+@st.cache_data(ttl=10)
+def cargar_online():
+    SHEET_ID = "1Wf2WxlVh0UdQJG3vhE-EUDr15E3cPE3n8iqHd0b7If4"
+    url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=productos"
     try:
-        df = pd.read_csv(url_gsheets)
+        df = pd.read_csv(url, dtype={'CODIGO': str})
         df.columns = [str(c).strip().upper() for c in df.columns]
-    except Exception:
-        if os.path.exists('productos.xlsx'):
-            try:
-                df = pd.read_excel('productos.xlsx')
-                df.columns = [str(c).strip().upper() for c in df.columns]
-            except: pass
-    
-    if df is not None:
-        # Renombrar columnas si vienen con nombres distintos
-        if 'NOMBRE PRODUCTO' not in df.columns and 'NOMBRE' in df.columns:
-            df.rename(columns={'NOMBRE': 'NOMBRE PRODUCTO'}, inplace=True)
-        if 'CODIGO' not in df.columns and 'COD' in df.columns:
-            df.rename(columns={'COD': 'CODIGO'}, inplace=True)
-            
-        return df.sort_values(by='NOMBRE PRODUCTO')
-    
-    return pd.DataFrame(columns=['CODIGO', 'NOMBRE PRODUCTO'])
+        if 'DETALLE' in df.columns: df.rename(columns={'DETALLE': 'NOMBRE PRODUCTO'}, inplace=True)
+        return df
+    except: return pd.DataFrame(columns=['CODIGO', 'NOMBRE PRODUCTO', 'PRECIO'])
+
+@st.cache_data
+def cargar_csv():
+    archivo = "productos bd web.csv"
+    if os.path.exists(archivo):
+        try:
+            df = pd.read_csv(archivo, sep=',', dtype=str, engine='python', on_bad_lines='skip')
+            df.columns = [str(c).strip().upper() for c in df.columns]
+            if len(df.columns) == 1:
+                col = df.columns[0]
+                nuevo_df = df[col].str.split(',', n=2, expand=True)
+                nuevo_df.columns = ['CODIGO', 'NOMBRE PRODUCTO', 'PRECIO']
+                df = nuevo_df
+            if 'DETALLE' in df.columns: df.rename(columns={'DETALLE': 'NOMBRE PRODUCTO'}, inplace=True)
+            return df
+        except: return pd.DataFrame()
+    return pd.DataFrame()
 
 def generar_barcode(numero_codigo):
+    if not numero_codigo or pd.isna(numero_codigo): return None
     try:
+        cod_clean = str(numero_codigo).split('.')[0].strip()
         COD = barcode.get_barcode_class('code128')
-        codigo = COD(str(numero_codigo), writer=ImageWriter())
+        codigo = COD(cod_clean, writer=ImageWriter())
         buffer = BytesIO()
         codigo.write(buffer)
         return buffer
-    except:
-        return None
+    except: return None
 
-# --- CUERPO DE LA APP (SIN LOGIN) ---
-
-# Mostrar Logo original
+# --- 3. INTERFAZ ---
 if os.path.exists("Logo-cugat-web.png"):
-    st.markdown('<div class="logo-blanco" style="display: flex; justify-content: center; margin-bottom: 20px;">', unsafe_allow_html=True)
-    st.image("Logo-cugat-web.png", width=180)
+    st.markdown('<div class="logo-contenedor" style="display: flex; justify-content: center; filter: brightness(0) invert(1);">', unsafe_allow_html=True)
+    st.image("Logo-cugat-web.png", width=110)
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<h1>Buscador de Productos</h1>", unsafe_allow_html=True)
 
-df = cargar_datos()
-busqueda = st.text_input("Buscar...", placeholder="Escribe nombre o código...")
+modo = st.pills("Base de Datos:", ["Autoservicio (Nube)", "Buscador General (Cugat Osorno)"], default="Autoservicio (Nube)")
 
-if busqueda:
-    df_filtrado = df[df['NOMBRE PRODUCTO'].astype(str).str.contains(busqueda, case=False, na=False) | 
-                     df['CODIGO'].astype(str).str.contains(busqueda, na=False)]
+df = cargar_csv() if modo == "Buscador General (Cugat Osorno)" else cargar_online()
+busqueda = st.text_input("🔍 Buscar...", placeholder="Nombre o código...")
+
+if busqueda and not df.empty:
+    mask = (df['NOMBRE PRODUCTO'].astype(str).str.contains(busqueda, case=False, na=False) | 
+            df['CODIGO'].astype(str).str.contains(busqueda, na=False))
+    df_f = df[mask].head(25)
 else:
-    df_filtrado = df 
+    df_f = df.head(25) if (modo == "Autoservicio (Nube)" and not df.empty) else pd.DataFrame()
 
-# --- RENDERIZADO ---
-for index, row in df_filtrado.iterrows():
-    with st.container(border=True):
-        c1, c2, c3 = st.columns([0.8, 2.2, 2.0])
-        
-        with c1:
-            ruta_foto = f"fotos/{row['CODIGO']}.png"
-            if os.path.exists(ruta_foto):
-                st.image(ruta_foto, width=70)
-            else:
-                st.image("https://via.placeholder.com/60", width=70)
-        
-        with c2:
-            st.markdown(f"**{row['NOMBRE PRODUCTO']}**")
-            
-            # Solo mostrar precio si la columna existe en la planilla
-            if 'PRECIO' in row and pd.notna(row['PRECIO']):
-                try:
-                    p_val = int(float(row['PRECIO']))
-                    st.markdown(f"<span style='color: #FD8204; font-size: 1.6rem; font-weight: bold;'>${p_val:,}</span>".replace(",", "."), unsafe_allow_html=True)
-                except:
-                    pass
-            
-            st.caption(f"ID: {row['CODIGO']}")
-            
-        with c3:
-            buffer_bar = generar_barcode(row['CODIGO'])
-            if buffer_bar:
-                st.markdown('<div style="background-color: white; padding: 10px; border-radius: 8px; display: flex; justify-content: center;">', unsafe_allow_html=True)
-                st.image(buffer_bar, use_container_width=True)
-                st.markdown('</div>', unsafe_allow_html=True)
+# --- 4. RENDERIZADO HORIZONTAL ---
+IMAGEN_PREDETERMINADA = "conejo-cugat-ico.png"
 
-# --- FOOTER ---
-st.markdown("<br><hr>", unsafe_allow_html=True)
-st.markdown(
-    """
-    <div style='text-align: center; color: rgba(255,255,255,0.6); padding-bottom: 20px;'>
-        <h3 style='font-family: "BrushScript", cursive; font-size: 1.6rem; margin-bottom: 0px;'>
-            Desarrollado por Christian González & Constanza Bustamante
-        </h3>
-        <p style='font-size: 0.85rem;'>2026 - Informática Osorno ™</p>
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
+for index, row in df_f.iterrows():
+    st.markdown('<div class="tarjeta-producto">', unsafe_allow_html=True)
+    
+    # Tres columnas: [Imagen, Info Centro, Código Barras]
+    col_img, col_info, col_bar = st.columns([0.6, 2.4, 1.5])
+    raw_code = str(row.get('CODIGO', '000')).split('.')[0]
+    
+    with col_img:
+        st.markdown('<div class="img-producto">', unsafe_allow_html=True)
+        ruta_foto = f"fotos/{raw_code}.png"
+        if os.path.exists(ruta_foto): st.image(ruta_foto)
+        elif os.path.exists(IMAGEN_PREDETERMINADA): st.image(IMAGEN_PREDETERMINADA)
+        else: st.image("https://via.placeholder.com/60")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col_info:
+        st.markdown(f"<span class='nombre-producto'>{row.get('NOMBRE PRODUCTO', 'Sin nombre')}</span>", unsafe_allow_html=True)
+        if 'PRECIO' in row:
+            try:
+                p = int(float(str(row['PRECIO']).replace('.','').replace(',','')))
+                st.markdown(f"<span class='precio-producto'>${p:,}</span>".replace(',','.'), unsafe_allow_html=True)
+            except: pass
+        st.caption(f"ID: {raw_code}")
+    
+    with col_bar:
+        img_bar = generar_barcode(row.get('CODIGO'))
+        if img_bar:
+            st.markdown('<div class="barcode-contenedor">', unsafe_allow_html=True)
+            st.image(img_bar, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("<br><center><p style='color:white; opacity: 0.3; font-size: 0.7rem;'>Sistema Cugat 2026</p></center>", unsafe_allow_html=True)
