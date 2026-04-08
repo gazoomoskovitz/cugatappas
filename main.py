@@ -97,7 +97,7 @@ logo_b64 = img_to_base64("Logo-cugat-web.png")
 if logo_b64:
     st.markdown(f'<div style="display:flex; justify-content:center; filter:brightness(0) invert(1); padding-bottom:10px;"><img src="data:image/png;base64,{logo_b64}" width="110"></div>', unsafe_allow_html=True)
 
-st.markdown("<h1>Buscador</h1>", unsafe_allow_html=True)
+st.markdown("<h1>Buscador de Productos</h1>", unsafe_allow_html=True)
 modo = st.pills("Base de Datos:", ["Autoservicio (Nube)", "Cugat Osorno (Local)"], default="Autoservicio (Nube)")
 
 df = cargar_csv() if "Local" in modo else cargar_online()
