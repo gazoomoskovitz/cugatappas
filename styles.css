@@ -6,64 +6,60 @@
 
 /* Fondo de la App */
 .stApp {
-    background: radial-gradient(circle, #FD8204 0%, #1a0d00 70%, #000000 100%) !important;
+    background: radial-gradient(circle, #4d2600 0%, #1a0d00 70%, #000000 100%) !important;
     background-attachment: fixed !important;
 }
 
-/* Ocultar elementos de Streamlit */
-#MainMenu {visibility: hidden;}
-header {visibility: hidden;}
-footer {visibility: hidden;}
-.stDeployButton {display:none;}
-
-/* Títulos */
+/* Títulos más pequeños para móvil */
 h1 {
     color: #FFFFFF !important;
     font-family: 'BrushScript', cursive !important;
     text-align: center;
-    font-size: 3rem !important;
-    margin-bottom: 10px !important;
+    font-size: 2.5rem !important;
+    margin-bottom: 0px !important;
 }
 
-/* Tarjeta de producto horizontal mejorada */
+/* Tarjeta Compacta */
 .tarjeta-producto {
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(253, 130, 4, 0.4) !important;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
+    background: rgba(20, 20, 20, 0.7) !important;
+    border: 1px solid #FD8204 !important;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
 }
 
-/* Tamaños de imagen */
+/* Imagen pequeña */
 .img-producto img {
-    max-width: 55px !important;
-    border-radius: 5px;
+    max-width: 50px !important;
 }
 
+/* Texto del Producto ajustado */
 .nombre-producto {
     color: #FFFFFF !important;
     font-weight: bold !important;
-    font-size: 0.95rem;
-    line-height: 1.1;
+    font-size: 0.9rem;
+    text-transform: uppercase;
     display: block;
 }
 
-/* PRECIO DESTACADO: Blanco, Negrita y Subrayado */
+/* Precio destacado pero no gigante */
 .precio-producto {
     color: #FFFFFF !important;
-    font-size: 1.6rem !important;
+    font-size: 1.5rem !important;
     font-weight: 900 !important;
-    text-decoration: underline !important;
-    display: block;
-    margin-top: 2px;
+    text-decoration: underline;
+    margin: 0px;
 }
 
-/* Contenedor del código de barras a la derecha */
+/* Código de barras lateral pequeño */
 .barcode-contenedor {
     background-color: white;
-    padding: 4px;
-    border-radius: 4px;
-    max-width: 150px;
+    padding: 3px;
+    border-radius: 5px;
+    max-width: 110px;
     margin-left: auto;
 }
+
+/* Ocultar basurita de Streamlit */
+#MainMenu, header, footer {visibility: hidden;}
+.stDeployButton {display:none;}
