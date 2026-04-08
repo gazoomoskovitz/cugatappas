@@ -7,7 +7,7 @@ from barcode.writer import ImageWriter
 from io import BytesIO
 
 # --- 1. CONFIGURACIÓN ---
-st.set_page_config(page_title="Cugat App Autoservicio", page_icon="👑", layout="centered")
+st.set_page_config(page_title="Cugat App", page_icon="👑", layout="centered")
 
 def cargar_estilos():
     if os.path.exists("styles.css"):
@@ -27,48 +27,31 @@ def cargar_online():
     SHEET_ID = "1Wf2WxlVh0UdQJG3vhE-EUDr15E3cPE3n8iqHd0b7If4"
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=productos"
     try:
-        df = pd.read_csv(url, dtype={'CODIGO': str})
+        df = pd.read_csv(url, dtype=str)
         df.columns = [str(c).strip().upper() for c in df.columns]
-        if 'DETALLE' in df.columns: df.rename(columns={'DETALLE': 'NOMBRE PRODUCTO'}, inplace=True)
         return df
-    except: return pd.DataFrame(columns=['CODIGO', 'NOMBRE PRODUCTO', 'PRECIO'])
+    except: return pd.DataFrame()
 
 @st.cache_data
 def cargar_csv():
-    # IMPORTANTE: El nombre en GitHub debe ser exacto (minúsculas recomendadas)
-    archivo = "productos bd web.csv" 
-    
+    archivo = "productos bd web.csv"
     if os.path.exists(archivo):
         try:
-            # Detección automática de separador (coma o punto y coma)
-            try:
-                df = pd.read_csv(archivo, sep=',', dtype=str, engine='python', on_bad_lines='skip')
-            except:
-                df = pd.read_csv(archivo, sep=';', dtype=str, engine='python', on_bad_lines='skip')
-            
-            # Limpieza de columnas
+            # Intento inteligente de lectura
+            df = pd.read_csv(archivo, sep=None, dtype=str, engine='python', on_bad_lines='skip')
             df.columns = [str(c).strip().upper() for c in df.columns]
             
-            # Si el archivo se lee como una sola columna (error común en Excel)
+            # Si el CSV se lee mal (una sola columna), forzamos división
             if len(df.columns) == 1:
                 col = df.columns[0]
                 df = df[col].str.split(',', n=2, expand=True) if ',' in str(df.iloc[0]) else df[col].str.split(';', n=2, expand=True)
                 df.columns = ['CODIGO', 'NOMBRE PRODUCTO', 'PRECIO']
-            
-            if 'DETALLE' in df.columns: df.rename(columns={'DETALLE': 'NOMBRE PRODUCTO'}, inplace=True)
-            
-            # Limpieza final de datos
-            df['NOMBRE PRODUCTO'] = df['NOMBRE PRODUCTO'].fillna('SIN NOMBRE').astype(str)
-            df['CODIGO'] = df['CODIGO'].fillna('000').astype(str)
-            
             return df
-        except Exception as e:
-            st.error(f"Error técnico en CSV: {e}")
-            return pd.DataFrame()
+        except: return pd.DataFrame()
     return pd.DataFrame()
 
 def generar_barcode(numero_codigo):
-    if not numero_codigo or pd.isna(numero_codigo) or str(numero_codigo).lower() == 'nan': return None
+    if not numero_codigo or pd.isna(numero_codigo): return None
     try:
         cod_clean = str(numero_codigo).split('.')[0].strip()
         COD = barcode.get_barcode_class('code128')
@@ -80,62 +63,68 @@ def generar_barcode(numero_codigo):
 
 # --- 3. INTERFAZ ---
 if os.path.exists("Logo-cugat-web.png"):
-    st.markdown('<div class="logo-contenedor" style="display: flex; justify-content: center; filter: brightness(0) invert(1);">', unsafe_allow_html=True)
-    st.image("Logo-cugat-web.png", width=110)
+    st.markdown('<div style="display: flex; justify-content: center; filter: brightness(0) invert(1);">', unsafe_allow_html=True)
+    st.image("Logo-cugat-web.png", width=90)
     st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<h1>Buscador de Productos</h1>", unsafe_allow_html=True)
+st.markdown("<h1>Buscador</h1>", unsafe_allow_html=True)
 
-# Pills para selección de base
-modo = st.pills("Base de Datos:", ["Autoservicio (Nube)", "Buscador General (Local)"], default="Autoservicio (Nube)")
+modo = st.pills("Base:", ["Autoservicio (Nube)", "Cugat Osorno (Local)"], default="Autoservicio (Nube)")
 
-df = cargar_csv() if modo == "Buscador General (Local)" else cargar_online()
+df = cargar_csv() if "Local" in modo else cargar_online()
 busqueda = st.text_input("🔍 Buscar...", placeholder="Escribe nombre o código...")
 
-# Filtrado dinámico
-if busqueda and not df.empty:
-    mask = (df['NOMBRE PRODUCTO'].astype(str).str.contains(busqueda, case=False, na=False) | 
-            df['CODIGO'].astype(str).str.contains(busqueda, na=False))
-    df_f = df[mask].head(25)
-else:
-    df_f = df.head(25) if (modo == "Autoservicio (Nube)" and not df.empty) else pd.DataFrame()
+# --- 4. FILTRADO UNIVERSAL (REPARADO) ---
+df_f = pd.DataFrame()
 
-# --- 4. RENDERIZADO DE TARJETAS ---
-IMAGEN_PREDETERMINADA = "conejo-cugat-ico.png"
+if not df.empty:
+    # Identificamos columnas por posición si los nombres fallan
+    # Col 0 suele ser Código, Col 1 suele ser Nombre
+    col_codigo = 'CODIGO' if 'CODIGO' in df.columns else df.columns[0]
+    col_nombre = 'NOMBRE PRODUCTO' if 'NOMBRE PRODUCTO' in df.columns else ('DETALLE' if 'DETALLE' in df.columns else df.columns[min(1, len(df.columns)-1)])
+
+    if busqueda:
+        # Buscamos en todas las columnas para no fallar
+        mask = df.apply(lambda row: row.astype(str).str.contains(busqueda, case=False).any(), axis=1)
+        df_f = df[mask].head(20)
+    else:
+        # Mostramos los primeros 20 por defecto si no hay búsqueda
+        df_f = df.head(20)
+
+# --- 5. RENDERIZADO COMPACTO ---
+IMAGEN_CONEJO = "conejo-cugat-ico.png"
 
 for index, row in df_f.iterrows():
     st.markdown('<div class="tarjeta-producto">', unsafe_allow_html=True)
     
-    # 3 Columnas: [Icono, Información, Código de Barras]
-    col_img, col_info, col_bar = st.columns([0.6, 2.5, 1.4])
-    raw_code = str(row.get('CODIGO', '000')).split('.')[0]
+    c1, c2, c3 = st.columns([0.7, 2.3, 1.2])
     
-    with col_img:
-        st.markdown('<div class="img-producto">', unsafe_allow_html=True)
-        ruta_foto = f"fotos/{raw_code}.png"
+    # Extraer datos de forma segura
+    curr_cod = str(row[col_codigo]).split('.')[0] if col_codigo in row else str(row.iloc[0]).split('.')[0]
+    curr_nom = str(row[col_nombre]) if col_nombre in row else "Producto sin nombre"
+    
+    with c1:
+        ruta_foto = f"fotos/{curr_cod}.png"
         if os.path.exists(ruta_foto): st.image(ruta_foto)
-        elif os.path.exists(IMAGEN_PREDETERMINADA): st.image(IMAGEN_PREDETERMINADA)
-        else: st.image("https://via.placeholder.com/60")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col_info:
-        st.markdown(f"<span class='nombre-producto'>{row.get('NOMBRE PRODUCTO', 'Sin nombre')}</span>", unsafe_allow_html=True)
-        if 'PRECIO' in row:
+        elif os.path.exists(IMAGEN_CONEJO): st.image(IMAGEN_CONEJO)
+        else: st.image("https://via.placeholder.com/50")
+
+    with c2:
+        st.markdown(f"<span class='nombre-producto'>{curr_nom}</span>", unsafe_allow_html=True)
+        if 'PRECIO' in df.columns:
             try:
-                # Limpiamos el precio de puntos y comas para formatearlo
-                p_raw = str(row['PRECIO']).replace('.','').replace(',','')
-                p = int(float(p_raw))
+                p = int(float(str(row['PRECIO']).replace('.','').replace(',','')))
                 st.markdown(f"<span class='precio-producto'>${p:,}</span>".replace(',','.'), unsafe_allow_html=True)
             except: pass
-        st.caption(f"ID: {raw_code}")
-    
-    with col_bar:
-        img_bar = generar_barcode(row.get('CODIGO'))
+        st.caption(f"ID: {curr_cod}")
+
+    with c3:
+        img_bar = generar_barcode(curr_cod)
         if img_bar:
             st.markdown('<div class="barcode-contenedor">', unsafe_allow_html=True)
             st.image(img_bar, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
-        
+
     st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<br><center><p style='color:white; opacity: 0.3; font-size: 0.7rem;'>Sistema Cugat 2026</p></center>", unsafe_allow_html=True)
+st.markdown("<center><p style='color:white; opacity: 0.3; font-size: 0.7rem;'>Sistema Cugat 2026</p></center>", unsafe_allow_html=True)
