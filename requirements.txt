@@ -1,0 +1,7 @@
+streamlit
+pandas
+openpyxl
+python-barcode
+python-dotenv
+extra-streamlit-components
+pillow

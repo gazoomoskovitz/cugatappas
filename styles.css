@@ -1,0 +1,44 @@
+/* style.css */
+
+/* Fondo combinado: Naranja difuminado hacia Negro */
+.stApp {
+    background: radial-gradient(circle, #FD8204 0%, #301901 60%, #000000 100%) !important;
+    background-attachment: fixed !important;
+}
+
+/* Títulos con tu tipografía BrushScript */
+h1, h2, h3 {
+    font-family: 'BrushScript', cursive !important;
+    color: #FFFFFF !important; /* Cambiado a blanco para que resalte sobre el fondo oscuro */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra para dar profundidad */
+    font-weight: normal !important;
+}
+
+/* Textos normales */
+p, span, label, .stMarkdown {
+    color: #FFFFFF !important;
+}
+
+/* Cajones de texto */
+.stTextInput input {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #000000 !important;
+    border-radius: 5px !important;
+}
+
+/* Botón Cugat */
+.stButton>button {
+    background-color: #000000 !important;
+    color: #FD8204 !important; /* Letras naranjas sobre botón negro */
+    border: 1px solid #FD8204 !important;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* Tarjetas de productos más elegantes */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: rgba(0, 0, 0, 0.4) !important; /* Fondo oscuro traslúcido */
+    backdrop-filter: blur(10px); /* Efecto vidrio esmerilado */
+    border: 1px solid rgba(253, 130, 4, 0.3) !important;
+    border-radius: 15px;
+}
