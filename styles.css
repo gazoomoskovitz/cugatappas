@@ -51,6 +51,37 @@ h1 {
     font-size: 1.5rem !important;
     font-weight: 900 !important;
 }
+/* --- DISEÑO PARA FFVV, CARNES, PLATOS, ROTI --- */
+
+/* Contenedor que separa info a la izquierda y PLU a la derecha */
+.fila-perecedero {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+}
+
+/* Caja del PLU resaltada */
+.plu-resaltado {
+    font-size: 1.6rem; /* Tamaño mediano/grande */
+    font-weight: bold;
+    color: #ffde00; /* Amarillo resaltante */
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(253, 130, 1, 0.3);
+    text-align: center;
+    min-width: 80px;
+    line-height: 1;
+}
+
+.plu-etiqueta {
+    font-size: 0.6rem;
+    color: #aaa;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+}
 
 /* --- AJUSTE CLAVE PARA QUE NO SE CORTEN LOS NÚMEROS --- */
 .barcode-container {
@@ -98,3 +129,15 @@ div[data-testid="stButton"] > button {
 
 #MainMenu, header, footer {visibility: hidden;}
 .stDeployButton {display:none;}
+
+/* --- ESTILO PARA PRODUCTOS DIFUMINADOS --- */
+.tarjeta-difuminada {
+    opacity: 0.4 !important; /* Se ve transparente */
+    filter: grayscale(80%) !important; /* Le quita color */
+    transition: all 0.3s ease-in-out;
+}
+
+.tarjeta-difuminada:hover {
+    opacity: 1 !important; /* Se aclara al pasar el mouse */
+    filter: grayscale(0%) !important;
+}
